@@ -469,7 +469,7 @@
     }
     #btn-drawer:hover { color: var(--text-pri); }
 
-    #mobile-title { font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+    #mobile-title { font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); cursor: pointer; }
 
     #mobile-now-playing {
       font-size: 11px; color: var(--text-dim);
@@ -486,21 +486,24 @@
 
     #drawer-overlay.open { display: block; }
 
-    #drawer-backdrop {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.35);
-    }
-
     #drawer-panel {
       position: absolute; top: 0; left: 0; bottom: 0;
       width: 75vw; max-width: 300px;
       background: var(--surface);
       display: flex; flex-direction: column;
       transform: translateX(-100%);
-      transition: transform 0.28s ease;
+      transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     #drawer-overlay.open #drawer-panel { transform: translateX(0); }
+
+    #drawer-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      transition: opacity 0.32s ease;
+    }
+    #drawer-overlay.open #drawer-backdrop { opacity: 1; }
 
     #drawer-header {
       padding: 18px 18px 14px;
@@ -705,6 +708,9 @@
       <div id="lyrics-side" style="display:none">
         <div id="lyrics-label">Lyrics</div>
         <div id="lyrics-content"></div>
+        <div id="footer" style="margin-top:32px;padding-bottom:8px;">
+          Music generated with Suno · Cover art generated with Gemini / ChatGPT
+        </div>
       </div>
 
     </div>
@@ -732,9 +738,6 @@
           <button class="mode-btn active" id="btn-loop-all" title="全部循環">↻</button>
           <button class="mode-btn" id="btn-loop-one" title="單曲循環">⟳</button>
         </div>
-      </div>
-      <div id="footer">
-        Music generated with Suno · Cover art generated with Gemini / ChatGPT
       </div>
     </div>
   </main>
@@ -987,8 +990,27 @@
   audio.volume = parseFloat(vol.value);
   vol.addEventListener('input', () => { audio.volume = parseFloat(vol.value); });
 
+  document.getElementById('mobile-title').addEventListener('click', () => {
+    currentIndex = -1;
+    audio.pause();
+    audio.src = '';
+    isPlaying = false;
+    updatePlayBtn();
+    document.querySelectorAll('.track-item').forEach(el => {
+      el.classList.remove('active', 'playing');
+    });
+    document.getElementById('cover-side').style.display = 'none';
+    document.getElementById('lyrics-side').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('mobile-now-playing').textContent = '選擇一首歌';
+    document.getElementById('time-current').textContent = '0:00';
+    document.getElementById('time-total').textContent = '0:00';
+    document.getElementById('progress-fill').style.width = '0%';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('track');
+    window.history.replaceState({}, '', url);
+  });
   document.getElementById('btn-play').addEventListener('click', togglePlay);
-  document.getElementById('btn-prev').addEventListener('click', prevTrack);
   document.getElementById('btn-next').addEventListener('click', nextTrack);
 
   document.addEventListener('keydown', e => {
