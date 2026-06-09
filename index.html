@@ -6,7 +6,7 @@
   <title>Music Box</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Sans+TC:wght@300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -22,11 +22,12 @@
       --text-dim: #a89880;
       --en-font:  'DM Sans', sans-serif;
       --zh-font:  'Noto Sans TC', sans-serif;
+      --el-font:  'EB Garamond', serif;
     }
 
     html, body { height: 100%; background: var(--bg); color: var(--text-pri); font-family: var(--en-font); overflow: hidden; }
 
-    /* ── App: sidebar | main ── */
+    /* ── App ── */
     #app {
       display: grid;
       grid-template-columns: 260px 1fr;
@@ -100,14 +101,14 @@
       50%      { opacity:0.3; transform:scale(0.6); }
     }
 
-    /* ── Main: content | player ── */
+    /* ── Main ── */
     #main {
       display: grid;
       grid-template-rows: 1fr auto;
       overflow: hidden;
     }
 
-    /* ── Content: left=cover+info | right=lyrics ── */
+    /* ── Content ── */
     #content {
       display: grid;
       grid-template-columns: 380px 1fr;
@@ -119,9 +120,9 @@
       display: flex; flex-direction: column;
       border-right: 1px solid var(--border);
       overflow: hidden;
+      background: var(--surface);
     }
 
-    /* 16:9 cover — full width of left panel */
     #cover-wrap {
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -155,22 +156,35 @@
       color: var(--text-dim); font-size: 28px;
     }
 
-    /* track info below cover */
+    /* track info + wave divider */
     #track-info {
-      padding: 16px 22px 14px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
+      padding: 14px 22px 0;
       flex-shrink: 0;
     }
 
     #track-title {
       font-size: 15px; font-weight: 500;
       color: var(--text-pri); line-height: 1.4;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
     #track-index { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+
+    /* ── Wave divider ── */
+    .wave-divider {
+      width: 100%;
+      flex-shrink: 0;
+      overflow: hidden;
+      line-height: 0;
+      margin-top: 14px;
+    }
+
+    .wave-divider svg {
+      display: block;
+      width: 100%;
+      height: 28px;
+    }
 
     /* ── Right panel: lyrics ── */
     #lyrics-side {
@@ -213,10 +227,32 @@
       grid-column: 1 / -1;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 10px; color: var(--text-dim);
+      gap: 18px; color: var(--text-dim);
+      padding: 40px 20px;
     }
-    #empty-state .icon { font-size: 32px; }
-    #empty-state p { font-size: 13px; font-family: var(--zh-font); }
+
+    /* wave decoration in empty state */
+    #empty-wave {
+      width: min(320px, 80%);
+      opacity: 0.45;
+    }
+
+    #empty-tagline {
+      font-family: var(--el-font);
+      font-size: clamp(20px, 3vw, 30px);
+      font-style: italic;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    #empty-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: var(--zh-font);
+      letter-spacing: 0.05em;
+    }
 
     /* ── Player bar ── */
     #player-bar {
@@ -327,17 +363,43 @@
     audio { display: none; }
 
     /* ── Responsive ── */
-    @media (max-width: 900px) {
-      #app { grid-template-columns: 220px 1fr; }
+    @media (max-width: 960px) {
       #content { grid-template-columns: 300px 1fr; }
     }
-    @media (max-width: 640px) {
-      html,body { overflow: auto; }
-      #app { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
-      #sidebar { height: 42vh; }
-      #content { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-      #cover-side { border-right: none; border-bottom: 1px solid var(--border); }
+    @media (max-width: 760px) {
+      #app { grid-template-columns: 200px 1fr; }
+      #content { grid-template-columns: 240px 1fr; }
+      #lyrics-side { padding: 20px 20px 16px; }
+    }
+    @media (max-width: 560px) {
+      html, body { overflow: auto; }
+      #app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: auto; min-height: 100vh;
+      }
+      #sidebar { height: 42vh; min-height: 220px; }
+      #main { display: flex; flex-direction: column; }
+      #content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        flex: 1;
+        overflow: visible;
+      }
+      #cover-side {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      #lyrics-side {
+        overflow-y: visible;
+        padding: 20px 18px 16px;
+        min-height: 300px;
+      }
+      #empty-state { grid-column: 1; }
       #volume-wrap { display: none; }
+      #mode-wrap { position: static; margin-left: auto; }
+      #controls { flex-wrap: wrap; gap: 4px; justify-content: center; }
+      .wave-divider svg { height: 20px; }
     }
   </style>
 </head>
@@ -353,11 +415,34 @@
 
   <main id="main">
     <div id="content">
+
+      <!-- Empty state -->
       <div id="empty-state">
-        <div class="icon">♪</div>
-        <p>從左側選擇一首歌開始</p>
+        <svg id="empty-wave" viewBox="0 0 320 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 30 C20 10, 40 50, 60 30 C80 10, 100 50, 120 30 C140 10, 160 50, 180 30 C200 10, 220 50, 240 30 C260 10, 280 50, 300 30 C310 20, 315 25, 320 30"
+            stroke="#a07840" stroke-width="1.5" stroke-linecap="round" fill="none">
+            <animate attributeName="d"
+              values="
+                M0 30 C20 10,40 50,60 30 C80 10,100 50,120 30 C140 10,160 50,180 30 C200 10,220 50,240 30 C260 10,280 50,300 30 C310 20,315 25,320 30;
+                M0 30 C20 50,40 10,60 30 C80 50,100 10,120 30 C140 50,160 10,180 30 C200 50,220 10,240 30 C260 50,280 10,300 30 C310 40,315 35,320 30;
+                M0 30 C20 10,40 50,60 30 C80 10,100 50,120 30 C140 10,160 50,180 30 C200 10,220 50,240 30 C260 10,280 50,300 30 C310 20,315 25,320 30"
+              dur="4s" repeatCount="indefinite" />
+          </path>
+          <path d="M0 38 C20 18, 40 58, 60 38 C80 18, 100 58, 120 38 C140 18, 160 58, 180 38 C200 18, 220 58, 240 38 C260 18, 280 58, 300 38 C310 28, 315 33, 320 38"
+            stroke="#c8a97e" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.5">
+            <animate attributeName="d"
+              values="
+                M0 38 C20 18,40 58,60 38 C80 18,100 58,120 38 C140 18,160 58,180 38 C200 18,220 58,240 38 C260 18,280 58,300 38 C310 28,315 33,320 38;
+                M0 38 C20 58,40 18,60 38 C80 58,100 18,120 38 C140 58,160 18,180 38 C200 58,220 18,240 38 C260 58,280 18,300 38 C310 48,315 43,320 38;
+                M0 38 C20 18,40 58,60 38 C80 18,100 58,120 38 C140 18,160 58,180 38 C200 18,220 58,240 38 C260 18,280 58,300 38 C310 28,315 33,320 38"
+              dur="6s" repeatCount="indefinite" />
+          </path>
+        </svg>
+        <div id="empty-tagline">Ἐν τῇ ψυχῇ μου ἔχεις</div>
+        <div id="empty-sub">從左側選擇一首歌開始</div>
       </div>
 
+      <!-- Cover side -->
       <div id="cover-side" style="display:none">
         <div id="cover-wrap">
           <div id="cover-placeholder">♪</div>
@@ -367,14 +452,42 @@
           <div id="track-title">—</div>
           <div id="track-index"></div>
         </div>
+        <!-- Wave divider -->
+        <div class="wave-divider">
+          <svg viewBox="0 0 380 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path id="wave-path"
+              d="M0 14 C24 4,48 24,72 14 C96 4,120 24,144 14 C168 4,192 24,216 14 C240 4,264 24,288 14 C312 4,336 24,360 14 C368 10,374 12,380 14"
+              stroke="#c4baa8" stroke-width="1" fill="none" stroke-linecap="round">
+              <animate attributeName="d"
+                values="
+                  M0 14 C24 4,48 24,72 14 C96 4,120 24,144 14 C168 4,192 24,216 14 C240 4,264 24,288 14 C312 4,336 24,360 14 C368 10,374 12,380 14;
+                  M0 14 C24 24,48 4,72 14 C96 24,120 4,144 14 C168 24,192 4,216 14 C240 24,264 4,288 14 C312 24,336 4,360 14 C368 18,374 16,380 14;
+                  M0 14 C24 4,48 24,72 14 C96 4,120 24,144 14 C168 4,192 24,216 14 C240 4,264 24,288 14 C312 4,336 24,360 14 C368 10,374 12,380 14"
+                dur="5s" repeatCount="indefinite" />
+            </path>
+            <path
+              d="M0 20 C24 10,48 30,72 20 C96 10,120 30,144 20 C168 10,192 30,216 20 C240 10,264 30,288 20 C312 10,336 30,360 20 C368 16,374 18,380 20"
+              stroke="#d4ccbc" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.6">
+              <animate attributeName="d"
+                values="
+                  M0 20 C24 10,48 30,72 20 C96 10,120 30,144 20 C168 10,192 30,216 20 C240 10,264 30,288 20 C312 10,336 30,360 20 C368 16,374 18,380 20;
+                  M0 20 C24 30,48 10,72 20 C96 30,120 10,144 20 C168 30,192 10,216 20 C240 30,264 10,288 20 C312 30,336 10,360 20 C368 24,374 22,380 20;
+                  M0 20 C24 10,48 30,72 20 C96 10,120 30,144 20 C168 10,192 30,216 20 C240 10,264 30,288 20 C312 10,336 30,360 20 C368 16,374 18,380 20"
+                dur="7s" repeatCount="indefinite" />
+            </path>
+          </svg>
+        </div>
       </div>
 
+      <!-- Lyrics -->
       <div id="lyrics-side" style="display:none">
         <div id="lyrics-label">Lyrics</div>
         <div id="lyrics-content"></div>
       </div>
+
     </div>
 
+    <!-- Player bar -->
     <div id="player-bar">
       <div id="progress-wrap">
         <span class="time-label" id="time-current">0:00</span>
@@ -464,6 +577,10 @@
     audio.src = 'audio/' + song.id + '.mp3';
     audio.load();
     audio.play().catch(() => {});
+
+    // reset lyrics scroll to top
+    const lyricsSide = document.getElementById('lyrics-side');
+    lyricsSide.scrollTop = 0;
 
     document.getElementById('lyrics-content').innerHTML =
       '<span style="color:var(--text-dim);font-family:var(--zh-font);font-size:13px">載入中…</span>';
