@@ -543,7 +543,7 @@
 
     /* ── Mobile ── */
     @media (max-width: 560px) {
-      html, body { overflow: auto; }
+      html, body { overflow: hidden; height: 100%; }
 
       #app {
         grid-template-columns: 1fr;
@@ -558,13 +558,14 @@
 
       #main {
         display: flex; flex-direction: column;
-        overflow: hidden; flex: 1;
+        overflow: hidden; flex: 1; min-height: 0;
       }
 
       #content {
         display: flex; flex-direction: column;
         flex: 1; overflow-y: auto;
         grid-template-columns: unset;
+        -webkit-overflow-scrolling: touch;
       }
 
       #cover-side {
@@ -575,14 +576,14 @@
 
       #lyrics-side {
         overflow-y: visible;
-        padding: 18px 18px 16px;
-        flex: 1;
+        padding: 18px 18px 24px;
+        flex-shrink: 0;
       }
 
       #empty-state { grid-column: 1; min-height: 60vh; }
 
       #player-bar {
-        padding: 10px 16px 12px;
+        padding: 10px 16px 16px;
         flex-shrink: 0;
       }
 
