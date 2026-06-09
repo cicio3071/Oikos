@@ -1014,6 +1014,7 @@
     window.history.replaceState({}, '', url);
   });
   document.getElementById('btn-play').addEventListener('click', togglePlay);
+  document.getElementById('btn-prev').addEventListener('click', prevTrack);
   document.getElementById('btn-next').addEventListener('click', nextTrack);
 
   document.addEventListener('keydown', e => {
