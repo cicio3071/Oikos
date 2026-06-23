@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Music Box</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" href="favicon.png" sizes="64x64" />
   <meta property="og:title" content="Music Box" />
   <meta property="og:description" content="You are my Oikos" />
   <meta property="og:image" content="https://cicio3071.github.io/Oikos/og-image.png" />
@@ -858,12 +860,38 @@
       renderList();
       document.getElementById('track-count').textContent = songs.length + ' tracks';
 
-      // check URL param
+      // check URL param first, then localStorage
       const params = new URLSearchParams(window.location.search);
       const trackParam = params.get('track');
       if (trackParam) {
         const idx = songs.findIndex(s => s.id === trackParam.padStart(2,'0'));
         if (idx >= 0) selectTrack(idx);
+      } else {
+        const lastTrack = localStorage.getItem('mb-last-track');
+        if (lastTrack) {
+          const idx = songs.findIndex(s => s.id === lastTrack);
+          if (idx >= 0) {
+            // restore selection without autoplay
+            currentIndex = idx;
+            const song = songs[idx];
+            document.querySelectorAll('.track-item').forEach((el, i) => {
+              el.classList.toggle('active', i === idx);
+            });
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('cover-side').style.display = 'flex';
+            document.getElementById('lyrics-side').style.display = 'block';
+            const img = document.getElementById('cover-img');
+            img.src = 'images/' + song.id + '.png';
+            img.onload = () => img.classList.add('loaded');
+            document.getElementById('track-title').textContent = song.title;
+            document.getElementById('track-index').textContent =
+              'Track ' + song.id + ' / ' + String(songs.length).padStart(2,'0');
+            document.getElementById('mobile-now-playing').textContent = song.title;
+            loadLyrics(song.id);
+            const activeItem = document.querySelector('#track-list .track-item.active');
+            if (activeItem) activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        }
       }
     } catch {
       document.getElementById('track-count').textContent = '無法載入曲目';
@@ -916,6 +944,9 @@
     document.getElementById('track-index').textContent =
       'Track ' + song.id + ' / ' + String(songs.length).padStart(2,'0');
     document.getElementById('mobile-now-playing').textContent = song.title;
+
+    // remember last played
+    localStorage.setItem('mb-last-track', song.id);
 
     // update URL without reload
     const url = new URL(window.location.href);
