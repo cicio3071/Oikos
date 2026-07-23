@@ -323,18 +323,9 @@
     #page-photo.loaded { opacity: 1; }
 
     /* ── Vinyl mode: click the photo to flip it into a spinning record ── */
-    #song-page.vinyl-on #page-title,
-    #song-page.vinyl-on #page-title-sub,
-    #song-page.vinyl-on #page-lyrics,
-    #song-page.vinyl-on #page-share,
-    #song-page.vinyl-on #page-footer {
-      opacity: 0; pointer-events: none;
-      max-height: 0; overflow: hidden; margin: 0 !important;
-      transition: opacity 0.25s ease, max-height 0.4s ease;
-    }
     #song-page.vinyl-on #page-photo-wrap {
       justify-content: center !important;
-      margin: 54px auto 18px !important;
+      margin: 24px auto 34px !important;
       transition: margin 0.4s ease;
     }
     #song-page:not(.vinyl-on) #page-photo-wrap { transition: margin 0.4s ease; }
@@ -378,13 +369,6 @@
       z-index: 3;
     }
     #song-page.vinyl-on.spinning #page-photo-wrap::before { transform: rotate(36deg); }
-
-    #vinyl-hint {
-      display: none; text-align: center; margin-top: 18px;
-      font-family: var(--zh-font); font-size: 11px; color: var(--text-dim);
-      opacity: 0; transition: opacity 0.4s ease 0.2s;
-    }
-    #song-page.vinyl-on #vinyl-hint { display: block; opacity: 0.8; }
 
 
     /* three layout variants, cycled by track index for visual rhythm */
@@ -573,7 +557,6 @@
         <div id="page-tint"></div>
         <div id="page-number"></div>
         <div id="page-photo-wrap"><img id="page-photo" alt="" /></div>
-        <div id="vinyl-hint">再點一下，回到歌詞</div>
         <h2 id="page-title">—</h2>
         <div id="page-title-sub"></div>
         <div id="page-lyrics"></div>
