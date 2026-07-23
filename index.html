@@ -37,30 +37,30 @@
       --el-font:  'EB Garamond', serif;
     }
 
-    [data-theme="deepsea"] {
-      --bg:       #0d1b2a;
-      --surface:  #112236;
-      --panel:    #162c44;
-      --border:   #1e3a55;
-      --border2:  #264d70;
-      --accent:   #5eb8c8;
-      --accent2:  #8dd4e0;
-      --text-pri: #d8eef4;
-      --text-sec: #7ab8cc;
-      --text-dim: #3a6880;
+    [data-theme="seafoam"] {
+      --bg:       #eef6f4;
+      --surface:  #e4f0ec;
+      --panel:    #d7e9e3;
+      --border:   #c2ddd3;
+      --border2:  #a7ccbf;
+      --accent:   #3d8a76;
+      --accent2:  #6bb0a0;
+      --text-pri: #16342c;
+      --text-sec: #3a6b5c;
+      --text-dim: #7fa89a;
     }
 
-    [data-theme="dusk"] {
-      --bg:       #1e0e08;
-      --surface:  #2a1510;
-      --panel:    #361c14;
-      --border:   #4a2618;
-      --border2:  #623222;
-      --accent:   #e8884a;
-      --accent2:  #f0aa70;
-      --text-pri: #f4dcc8;
-      --text-sec: #c8906a;
-      --text-dim: #7a4830;
+    [data-theme="coral"] {
+      --bg:       #fdf1eb;
+      --surface:  #fce7dd;
+      --panel:    #f8d9c9;
+      --border:   #f0c3ad;
+      --border2:  #e6a988;
+      --accent:   #d96a3e;
+      --accent2:  #eda078;
+      --text-pri: #3a2015;
+      --text-sec: #7a4530;
+      --text-dim: #b98a6d;
     }
 
     [data-theme="mist"] {
@@ -76,17 +76,17 @@
       --text-dim: #7a9aae;
     }
 
-    [data-theme="midnight"] {
-      --bg:       #080c14;
-      --surface:  #0e1420;
-      --panel:    #141c2e;
-      --border:   #1c2840;
-      --border2:  #263654;
-      --accent:   #c8d8f0;
-      --accent2:  #e0eaff;
-      --text-pri: #e8eef8;
-      --text-sec: #90a8cc;
-      --text-dim: #3a5070;
+    [data-theme="lavender"] {
+      --bg:       #f4f0f8;
+      --surface:  #ece5f3;
+      --panel:    #e0d5ed;
+      --border:   #cebfe1;
+      --border2:  #b6a1d1;
+      --accent:   #7a5ea8;
+      --accent2:  #9a80c0;
+      --text-pri: #2c2040;
+      --text-sec: #5a4878;
+      --text-dim: #9689ac;
     }
 
     html, body {
@@ -104,8 +104,7 @@
       opacity: 0.05; mix-blend-mode: multiply;
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     }
-    [data-theme="deepsea"] .grain, [data-theme="dusk"] .grain,
-    [data-theme="midnight"] .grain { mix-blend-mode: overlay; opacity: 0.06; }
+    /* all themes are light now, so the grain uses the same soft multiply blend everywhere */
 
     #app { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
@@ -225,10 +224,10 @@
     .theme-dot:hover { transform: scale(1.15); }
     .theme-dot.active { border-color: var(--text-pri); }
     .theme-dot[data-t="parchment"] { background: #a07840; }
-    .theme-dot[data-t="deepsea"]   { background: #5eb8c8; }
-    .theme-dot[data-t="dusk"]      { background: #e8884a; }
+    .theme-dot[data-t="seafoam"]   { background: #3d8a76; }
+    .theme-dot[data-t="coral"]     { background: #d96a3e; }
     .theme-dot[data-t="mist"]      { background: #4a7a9a; }
-    .theme-dot[data-t="midnight"]  { background: #c8d8f0; }
+    .theme-dot[data-t="lavender"]  { background: #7a5ea8; }
 
     /* ── The book ── */
     #book { position: relative; width: 100%; height: 100%; }
@@ -446,10 +445,10 @@
       <div id="toc-list"></div>
       <div id="toc-theme-bar">
         <div class="theme-dot active" data-t="parchment" title="Parchment"></div>
-        <div class="theme-dot" data-t="deepsea" title="Deep Sea"></div>
-        <div class="theme-dot" data-t="dusk" title="Dusk"></div>
+        <div class="theme-dot" data-t="seafoam" title="Seafoam"></div>
+        <div class="theme-dot" data-t="coral" title="Coral"></div>
         <div class="theme-dot" data-t="mist" title="Mist"></div>
-        <div class="theme-dot" data-t="midnight" title="Midnight"></div>
+        <div class="theme-dot" data-t="lavender" title="Lavender"></div>
       </div>
     </div>
   </div>
@@ -525,7 +524,7 @@
   let songs = [], currentIndex = -1, isPlaying = false, playMode = 'all';
 
   // ── Theme ──
-  const themes = ['parchment','deepsea','dusk','mist','midnight'];
+  const themes = ['parchment','seafoam','coral','mist','lavender'];
   let currentTheme = localStorage.getItem('mb-theme') || 'parchment';
 
   function applyTheme(t) {
