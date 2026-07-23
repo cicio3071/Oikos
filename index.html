@@ -329,6 +329,9 @@
     }
     #song-page:not(.vinyl-on) #page-photo-wrap { transition: margin 0.4s ease; }
 
+    /* Non-vinyl mode: the inner disc wrapper should be fully transparent to layout */
+    #vinyl-disc { display: contents; }
+
     #song-page.vinyl-on #page-photo {
       width: 230px; max-width: 66vw; height: 230px;
       object-fit: cover;
@@ -337,27 +340,30 @@
       transform: none !important;
       box-shadow: 0 4px 0 4px var(--surface), 0 18px 40px rgba(0,0,0,0.3);
       position: relative; z-index: 2;
-      animation: vinylSpinPhoto 3.2s linear infinite; animation-play-state: paused;
     }
-    #song-page.vinyl-on.spinning #page-photo { animation-play-state: running; }
 
-    #song-page.vinyl-on #page-photo-wrap::after {
+    /* In vinyl mode #vinyl-disc becomes a real, rotatable box (photo + grooves spin together).
+       Rotation angle is driven by JS (requestAnimationFrame) rather than a CSS animation,
+       so it can accelerate/decelerate smoothly like a real turntable motor with inertia. */
+    #song-page.vinyl-on #vinyl-disc {
+      display: block; position: relative;
+      width: 230px; max-width: 66vw; height: 230px;
+      will-change: transform;
+    }
+    #song-page.vinyl-on #vinyl-disc::after {
       content: '';
       position: absolute; z-index: 1;
-      width: 320px; height: 320px; max-width: 88vw; max-height: 88vw;
+      width: 320px; height: 320px; max-width: 92vw; max-height: 92vw;
       left: 50%; top: 50%; transform: translate(-50%, -50%);
       border-radius: 50%;
       background:
         radial-gradient(circle at center, transparent 0 36px, rgba(0,0,0,0) 36px),
         repeating-radial-gradient(circle at center, #232323 0px, #232323 2px, #2c2c2c 2px, #2c2c2c 5px);
       box-shadow: 0 20px 50px rgba(0,0,0,0.32);
-      animation: vinylSpin 3.2s linear infinite; animation-play-state: paused;
     }
-    #song-page.vinyl-on.spinning #page-photo-wrap::after { animation-play-state: running; }
-    @keyframes vinylSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-    @keyframes vinylSpinPhoto { to { transform: rotate(360deg); } }
 
-    /* tonearm: reuses the same pseudo-element normally used as washi tape */
+    /* tonearm: reuses the same pseudo-element normally used as washi tape, stays on the
+       outer (non-rotating) wrap so it doesn't spin along with the disc */
     #song-page.vinyl-on #page-photo-wrap::before {
       width: 5px; height: 84px; border-radius: 3px;
       background: var(--text-pri); opacity: 0.8;
@@ -555,7 +561,7 @@
       <section id="song-page" class="page">
         <div id="page-tint"></div>
         <div id="page-number"></div>
-        <div id="page-photo-wrap" tabindex="0" role="button" aria-label="切換黑膠唱片模式"><img id="page-photo" alt="" /></div>
+        <div id="page-photo-wrap" tabindex="0" role="button" aria-label="切換黑膠唱片模式"><div id="vinyl-disc"><img id="page-photo" alt="" /></div></div>
         <h2 id="page-title">—</h2>
         <div id="page-title-sub"></div>
         <div id="page-lyrics"></div>
@@ -896,13 +902,54 @@
   // ── Vinyl mode: click the photo to flip it into a spinning record, lyrics tuck away ──
   document.getElementById('page-photo-wrap').addEventListener('click', () => {
     document.getElementById('song-page').classList.toggle('vinyl-on');
+    vinylStartLoop();
   });
   document.getElementById('page-photo-wrap').addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       document.getElementById('song-page').classList.toggle('vinyl-on');
+      vinylStartLoop();
     }
   });
+
+  // Disc rotation has real inertia: it eases up to speed like a turntable motor
+  // starting up, and coasts down gradually (not an abrupt stop) when paused —
+  // driven frame-by-frame rather than a fixed-speed CSS animation so the
+  // acceleration/deceleration can be smooth.
+  let vinylAngle = 0;
+  let vinylSpeed = 0; // degrees per second
+  let vinylRafId = null;
+  let vinylLastTime = null;
+  const VINYL_FULL_SPEED = 360 / 3.2;        // deg/sec — one rotation per 3.2s at full speed
+  const VINYL_ACCEL = VINYL_FULL_SPEED / 1.2; // reach full speed over ~1.2s
+  const VINYL_DECEL = VINYL_FULL_SPEED / 2.5; // coast down to a stop over ~2.5s
+
+  function vinylTick(time) {
+    if (vinylLastTime === null) vinylLastTime = time;
+    const dt = Math.min((time - vinylLastTime) / 1000, 0.1); // clamp for tab-backgrounding jumps
+    vinylLastTime = time;
+
+    const target = isPlaying ? VINYL_FULL_SPEED : 0;
+    if (vinylSpeed < target) vinylSpeed = Math.min(target, vinylSpeed + VINYL_ACCEL * dt);
+    else if (vinylSpeed > target) vinylSpeed = Math.max(target, vinylSpeed - VINYL_DECEL * dt);
+    vinylAngle = (vinylAngle + vinylSpeed * dt) % 360;
+
+    const disc = document.getElementById('vinyl-disc');
+    if (disc) disc.style.transform = 'rotate(' + vinylAngle.toFixed(2) + 'deg)';
+
+    if (document.getElementById('song-page').classList.contains('vinyl-on')) {
+      vinylRafId = requestAnimationFrame(vinylTick);
+    } else {
+      vinylRafId = null;
+      vinylLastTime = null;
+    }
+  }
+  function vinylStartLoop() {
+    if (vinylRafId === null && document.getElementById('song-page').classList.contains('vinyl-on')) {
+      vinylLastTime = null;
+      vinylRafId = requestAnimationFrame(vinylTick);
+    }
+  }
 
   document.getElementById('progress-track').addEventListener('click', e => {
     if (!audio.duration) return;
