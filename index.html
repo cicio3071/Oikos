@@ -319,7 +319,73 @@
       transition: opacity 0.4s ease;
       opacity: 0;
     }
+    #page-photo-wrap { cursor: pointer; }
     #page-photo.loaded { opacity: 1; }
+
+    /* ── Vinyl mode: click the photo to flip it into a spinning record ── */
+    #song-page.vinyl-on #page-title,
+    #song-page.vinyl-on #page-title-sub,
+    #song-page.vinyl-on #page-lyrics,
+    #song-page.vinyl-on #page-share,
+    #song-page.vinyl-on #page-footer {
+      opacity: 0; pointer-events: none;
+      max-height: 0; overflow: hidden; margin: 0 !important;
+      transition: opacity 0.25s ease, max-height 0.4s ease;
+    }
+    #song-page.vinyl-on #page-photo-wrap {
+      justify-content: center !important;
+      margin: 54px auto 18px !important;
+      transition: margin 0.4s ease;
+    }
+    #song-page:not(.vinyl-on) #page-photo-wrap { transition: margin 0.4s ease; }
+
+    #song-page.vinyl-on #page-photo {
+      width: 230px; max-width: 66vw; height: 230px;
+      object-fit: cover;
+      -webkit-mask-image: none; mask-image: none;
+      border-radius: 50%;
+      transform: none !important;
+      box-shadow: 0 4px 0 4px var(--surface), 0 18px 40px rgba(0,0,0,0.3);
+      position: relative; z-index: 2;
+      animation: vinylSpinPhoto 3.2s linear infinite; animation-play-state: paused;
+    }
+    #song-page.vinyl-on.spinning #page-photo { animation-play-state: running; }
+
+    #song-page.vinyl-on #page-photo-wrap::after {
+      content: '';
+      position: absolute; z-index: 1;
+      width: 320px; height: 320px; max-width: 88vw; max-height: 88vw;
+      left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, transparent 0 36px, rgba(0,0,0,0) 36px),
+        repeating-radial-gradient(circle at center, #232323 0px, #232323 2px, #2c2c2c 2px, #2c2c2c 5px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.32);
+      animation: vinylSpin 3.2s linear infinite; animation-play-state: paused;
+    }
+    #song-page.vinyl-on.spinning #page-photo-wrap::after { animation-play-state: running; }
+    @keyframes vinylSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    @keyframes vinylSpinPhoto { to { transform: rotate(360deg); } }
+
+    /* tonearm: reuses the same pseudo-element normally used as washi tape */
+    #song-page.vinyl-on #page-photo-wrap::before {
+      width: 5px; height: 84px; border-radius: 3px;
+      background: var(--text-pri); opacity: 0.8;
+      top: -14px; left: auto; right: 10%;
+      transform: rotate(48deg); transform-origin: top right;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: transform 0.5s cubic-bezier(.34,1.56,.64,1);
+      z-index: 3;
+    }
+    #song-page.vinyl-on.spinning #page-photo-wrap::before { transform: rotate(36deg); }
+
+    #vinyl-hint {
+      display: none; text-align: center; margin-top: 18px;
+      font-family: var(--zh-font); font-size: 11px; color: var(--text-dim);
+      opacity: 0; transition: opacity 0.4s ease 0.2s;
+    }
+    #song-page.vinyl-on #vinyl-hint { display: block; opacity: 0.8; }
+
 
     /* three layout variants, cycled by track index for visual rhythm */
     .layout-a #page-photo-wrap { justify-content: flex-start; }
@@ -357,13 +423,9 @@
       color: var(--text-dim); line-height: 1.6; margin-bottom: 4px;
     }
     .lyric-blank {
-      display: flex; align-items: center; justify-content: center;
-      height: 30px; color: var(--accent); opacity: 0;
-      font-size: 11px; letter-spacing: 0.3em;
+      display: block; height: 24px; opacity: 0;
       transition: opacity 0.6s ease;
     }
-    .lyric-blank.visible { opacity: 0.5; }
-    .lyric-blank::before { content: '〜'; }
 
     #page-share {
       display: inline-flex; align-items: center; gap: 6px;
@@ -511,6 +573,7 @@
         <div id="page-tint"></div>
         <div id="page-number"></div>
         <div id="page-photo-wrap"><img id="page-photo" alt="" /></div>
+        <div id="vinyl-hint">再點一下，回到歌詞</div>
         <h2 id="page-title">—</h2>
         <div id="page-title-sub"></div>
         <div id="page-lyrics"></div>
@@ -810,8 +873,13 @@
     document.getElementById('time-total').textContent = formatTime(audio.duration);
   });
   audio.addEventListener('ended', () => { if (playMode !== 'one') nextTrack(); });
-  audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); markPlaying(); });
-  audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); markPlaying(); });
+  audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); markPlaying(); document.getElementById('song-page').classList.remove('spinning'); });
+  audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); markPlaying(); document.getElementById('song-page').classList.add('spinning'); });
+
+  // ── Vinyl mode: click the photo to flip it into a spinning record, lyrics tuck away ──
+  document.getElementById('page-photo-wrap').addEventListener('click', () => {
+    document.getElementById('song-page').classList.toggle('vinyl-on');
+  });
 
   document.getElementById('progress-track').addEventListener('click', e => {
     if (!audio.duration) return;
