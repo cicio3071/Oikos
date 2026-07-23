@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://cicio3071.github.io/Oikos/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Sans+TC:wght@300;400;500&family=EB+Garamond:ital,wght@0,400;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Sans+TC:wght@300;400;500&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -290,7 +290,7 @@
 
     #page-photo-wrap {
       display: flex; margin-bottom: 30px; margin-top: 8px;
-      position: relative;
+      position: relative; cursor: pointer;
     }
     /* washi tape: a small translucent strip pinning the photo corner, like it was hand-pasted in */
     #page-photo-wrap::before {
@@ -319,7 +319,6 @@
       transition: opacity 0.4s ease;
       opacity: 0;
     }
-    #page-photo-wrap { cursor: pointer; }
     #page-photo.loaded { opacity: 1; }
 
     /* ── Vinyl mode: click the photo to flip it into a spinning record ── */
@@ -497,7 +496,7 @@
     }
 
     /* Keyboard focus visibility */
-    button:focus-visible, .toc-item:focus-visible {
+    button:focus-visible, .toc-item:focus-visible, .theme-dot:focus-visible, #page-photo-wrap:focus-visible {
       outline: 2px solid var(--accent); outline-offset: 2px;
     }
   </style>
@@ -523,11 +522,11 @@
       </div>
       <div id="toc-list"></div>
       <div id="toc-theme-bar">
-        <div class="theme-dot active" data-t="parchment" title="Parchment"></div>
-        <div class="theme-dot" data-t="seafoam" title="Seafoam"></div>
-        <div class="theme-dot" data-t="coral" title="Coral"></div>
-        <div class="theme-dot" data-t="mist" title="Mist"></div>
-        <div class="theme-dot" data-t="lavender" title="Lavender"></div>
+        <div class="theme-dot active" data-t="parchment" title="Parchment" tabindex="0" role="button" aria-label="暖米色主題"></div>
+        <div class="theme-dot" data-t="seafoam" title="Seafoam" tabindex="0" role="button" aria-label="海沫綠主題"></div>
+        <div class="theme-dot" data-t="coral" title="Coral" tabindex="0" role="button" aria-label="珊瑚橘主題"></div>
+        <div class="theme-dot" data-t="mist" title="Mist" tabindex="0" role="button" aria-label="淺灰藍主題"></div>
+        <div class="theme-dot" data-t="lavender" title="Lavender" tabindex="0" role="button" aria-label="薰衣草紫主題"></div>
       </div>
     </div>
   </div>
@@ -556,7 +555,7 @@
       <section id="song-page" class="page">
         <div id="page-tint"></div>
         <div id="page-number"></div>
-        <div id="page-photo-wrap"><img id="page-photo" alt="" /></div>
+        <div id="page-photo-wrap" tabindex="0" role="button" aria-label="切換黑膠唱片模式"><img id="page-photo" alt="" /></div>
         <h2 id="page-title">—</h2>
         <div id="page-title-sub"></div>
         <div id="page-lyrics"></div>
@@ -604,18 +603,22 @@
 
   // ── Theme ──
   const themes = ['parchment','seafoam','coral','mist','lavender'];
-  let currentTheme = localStorage.getItem('mb-theme') || 'parchment';
+  let currentTheme = 'parchment';
+  try { currentTheme = localStorage.getItem('mb-theme') || 'parchment'; } catch (e) { /* storage blocked, fall back to default theme */ }
 
   function applyTheme(t) {
     currentTheme = t;
     document.documentElement.setAttribute('data-theme', t === 'parchment' ? '' : t);
-    localStorage.setItem('mb-theme', t);
+    try { localStorage.setItem('mb-theme', t); } catch (e) { /* storage unavailable, theme just won't persist */ }
     document.querySelectorAll('.theme-dot').forEach(d => {
       d.classList.toggle('active', d.dataset.t === t);
     });
   }
   document.querySelectorAll('.theme-dot').forEach(d => {
     d.addEventListener('click', () => applyTheme(d.dataset.t));
+    d.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyTheme(d.dataset.t); }
+    });
   });
   applyTheme(currentTheme);
 
@@ -744,7 +747,7 @@
       doUpdate();
     }
 
-    localStorage.setItem('mb-last-track', song.id);
+    try { localStorage.setItem('mb-last-track', song.id); } catch (e) { /* storage unavailable, last-track just won't persist */ }
     const url = new URL(window.location.href);
     url.searchParams.set('track', song.id);
     window.history.replaceState({}, '', url);
@@ -797,12 +800,36 @@
   document.getElementById('page-share').addEventListener('click', () => {
     if (currentIndex < 0) return;
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
+    const showToast = (msg) => {
       const toast = document.getElementById('share-toast');
+      toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
-    });
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(() => showToast('已複製連結！'))
+        .catch(() => copyFallback(url, showToast));
+    } else {
+      copyFallback(url, showToast);
+    }
   });
+
+  function copyFallback(text, showToast) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('已複製連結！');
+    } catch (e) {
+      showToast('複製失敗，請手動複製網址');
+    }
+  }
 
   // ── Playback ──
   function togglePlay() {
@@ -856,12 +883,25 @@
     document.getElementById('time-total').textContent = formatTime(audio.duration);
   });
   audio.addEventListener('ended', () => { if (playMode !== 'one') nextTrack(); });
+  audio.addEventListener('error', () => {
+    if (currentIndex < 0) return;
+    const toast = document.getElementById('share-toast');
+    toast.textContent = '這首歌的音檔載入失敗';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  });
   audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); markPlaying(); document.getElementById('song-page').classList.remove('spinning'); });
   audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); markPlaying(); document.getElementById('song-page').classList.add('spinning'); });
 
   // ── Vinyl mode: click the photo to flip it into a spinning record, lyrics tuck away ──
   document.getElementById('page-photo-wrap').addEventListener('click', () => {
     document.getElementById('song-page').classList.toggle('vinyl-on');
+  });
+  document.getElementById('page-photo-wrap').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      document.getElementById('song-page').classList.toggle('vinyl-on');
+    }
   });
 
   document.getElementById('progress-track').addEventListener('click', e => {
