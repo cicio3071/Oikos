@@ -23,6 +23,7 @@
 
     /* ── Themes (unchanged from original tuning) ── */
     :root {
+      --bg:       #f5f0e8;
       --surface:  #ede8de;
       --panel:    #e6dfd3;
       --border:   #d4ccbc;
@@ -504,6 +505,73 @@
     /* Keyboard focus visibility */
     button:focus-visible, .toc-item:focus-visible, .theme-dot:focus-visible, #page-photo-wrap:focus-visible {
       outline: 2px solid var(--accent); outline-offset: 2px;
+    }
+
+    /* ── Wide desktop only: an open book — photo/vinyl on the left leaf, text on the
+       right leaf. Gated on (hover:hover) and (pointer:fine) in addition to width so
+       a touch device (iPad, even in wide landscape) never gets this — only an actual
+       mouse-driven desktop does. Phones and tablets are completely untouched. ── */
+    @media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+      /* The desk: a tone visibly deeper than the page itself, so the book
+         reads as an object sitting on a surface rather than a flat fill. */
+      #book { background: var(--panel); }
+
+      /* The book: page-wrap becomes a bounded, rounded, shadowed object
+         inset from the desk edges, instead of filling the whole viewport. */
+      #page-wrap {
+        top: 22px !important; right: 30px !important;
+        bottom: 114px !important; left: 100px !important;
+        background: var(--bg);
+        border-radius: 14px;
+        box-shadow: 0 28px 64px rgba(0,0,0,0.20), 0 6px 18px rgba(0,0,0,0.10);
+      }
+      /* Control strip: a separate tray resting below the book, sharing its margins */
+      #player-bar {
+        left: 100px !important; right: 30px !important; bottom: 22px !important;
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      }
+      /* The book spine tab lines up with the book's new left edge rather than
+         the bare viewport edge */
+      #toc-tab { box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+
+      #song-page {
+        display: grid !important;
+        grid-template-columns: minmax(230px, 320px) 96px minmax(0, 1fr);
+        column-gap: 0; row-gap: 6px;
+        max-width: 1080px !important;
+        padding-top: 96px;
+      }
+      /* Gutter shadow: a soft wide band where the two pages curve down into
+         the spine, rather than a single hairline */
+      #song-page::before {
+        content: '';
+        grid-column: 2; grid-row: 1 / -1;
+        width: 100%; margin: 40px 0 24px;
+        background: linear-gradient(to right,
+          transparent 0%,
+          rgba(0,0,0,0.05) 38%,
+          rgba(0,0,0,0.09) 50%,
+          rgba(0,0,0,0.05) 62%,
+          transparent 100%);
+      }
+      /* The crease itself: a fine defined line at the exact center of the gutter */
+      #song-page::after {
+        content: '';
+        grid-column: 2; grid-row: 1 / -1;
+        width: 1px; margin: 40px auto 24px;
+        background: var(--border2); opacity: 0.7;
+      }
+      #page-photo-wrap {
+        grid-column: 1; grid-row: 1 / span 5;
+        align-self: center; justify-self: center;
+        justify-content: center !important; margin: 0 !important;
+      }
+      #page-title      { grid-column: 3; grid-row: 1; }
+      #page-title-sub  { grid-column: 3; grid-row: 2; }
+      #page-lyrics     { grid-column: 3; grid-row: 3; }
+      #page-share      { grid-column: 3; grid-row: 4; }
+      #page-footer     { grid-column: 3; grid-row: 5; }
     }
   </style>
 </head>
