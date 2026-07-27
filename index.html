@@ -195,6 +195,16 @@
     #toc-list::-webkit-scrollbar { width: 5px; }
     #toc-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
+    /* 主要內容區塊也套用同樣細窄、不搶戲的捲軸樣式，跟目錄清單一致 */
+    #page-wrap {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border2) transparent;
+    }
+    #page-wrap::-webkit-scrollbar { width: 5px; }
+    #page-wrap::-webkit-scrollbar-track { background: transparent; }
+    #page-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    #page-wrap::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
     .toc-item {
       display: flex; align-items: baseline; gap: 12px;
       padding: 10px 24px;
