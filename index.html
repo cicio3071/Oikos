@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Oikos</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" href="favicon.png" sizes="64x64" />
   <meta property="og:title" content="Oikos" />
@@ -705,6 +708,16 @@
 <audio id="audio-player" preload="none"></audio>
 
 <script>
+  // ── iOS Safari sometimes restores a frozen snapshot of the page from its
+  // back-forward cache (e.g. switching apps then coming back) instead of
+  // fetching the latest deployed version. Detect that and force a real
+  // reload so the UI never gets stuck showing an old version. ──
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   const audio = document.getElementById('audio-player');
   let songs = [], currentIndex = -1, isPlaying = false, playMode = 'all';
 
