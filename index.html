@@ -690,7 +690,7 @@
       <div id="controls">
         <div id="volume-wrap">
           <span id="volume-icon">♪</span>
-          <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8" />
+          <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8" aria-label="音量" />
         </div>
         <button class="ctrl-btn" id="btn-prev" title="上一首">&#9664;&#9664;</button>
         <button class="ctrl-btn" id="btn-play" title="播放/暫停">&#9654;</button>
@@ -767,7 +767,8 @@
         const idx = songs.findIndex(s => s.id === trackParam.padStart(2,'0'));
         if (idx >= 0) { selectTrack(idx, { autoplay: false }); return; }
       }
-      const lastTrack = localStorage.getItem('mb-last-track');
+      let lastTrack = null;
+      try { lastTrack = localStorage.getItem('mb-last-track'); } catch (e) { /* storage unavailable, just skip resume */ }
       if (lastTrack) {
         const idx = songs.findIndex(s => s.id === lastTrack);
         if (idx >= 0) selectTrack(idx, { autoplay: false });
@@ -909,13 +910,19 @@
     if (autoplay) audio.play().catch(() => {});
   }
 
+  let lyricsLoadToken = 0;
+
   async function loadLyrics(id) {
     const container = document.getElementById('page-lyrics');
+    const myToken = ++lyricsLoadToken; // mark this call as the latest request
     try {
       const res = await fetch('lyrics/' + id + '.txt');
       if (!res.ok) throw new Error();
-      renderLyrics(await res.text(), container);
+      const text = await res.text();
+      if (myToken !== lyricsLoadToken) return; // a newer track was selected while this was in flight — discard
+      renderLyrics(text, container);
     } catch {
+      if (myToken !== lyricsLoadToken) return;
       container.innerHTML = '<span style="color:var(--text-dim);font-family:var(--zh-font);font-size:13px">歌詞未載入</span>';
     }
   }
